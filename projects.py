@@ -40,7 +40,7 @@ class Projects :
 
     def __init__(self, path):
         self.console = Console()
-        self.path = path
+        self.path = os.path.expanduser(path)
 
     def read_proj_file (self, proj_file) :
         proj = {}
@@ -76,7 +76,7 @@ class Projects :
 
     def read_projects (self, verb=False):
         projs = []
-        for d in os.walk(os.path.expanduser(self.path)) :
+        for d in os.walk(self.path) :
             if 'project.md' in d[2] :
                 proj_path = d[0][len(self.path)+1:]
                 p = self.read_proj_file(os.path.join(d[0], 'project.md'))
@@ -134,7 +134,7 @@ class Projects :
     def print_proj_md (self, c) :
         p = self.projs[c]
         MARKDOWN = ""
-        with open(os.path.join(path, p['path'], 'project.md')) as f :
+        with open(os.path.join(self.path, p['path'], 'project.md')) as f :
             for l in f.readlines():
                 MARKDOWN +=l 
             
