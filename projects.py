@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with thi
 """
 
 import os, sys
+import numpy as np
+import pandas as pd
 
 from rich.console import Console
 from rich.markup import escape
@@ -97,6 +99,14 @@ class Projects :
         
         if verb :
             self.console.print('{} projects found'.format(len(projs)))
+            
+        pdf = pd.DataFrame(projs)
+        
+        self.projs_pd = pdf
+        #will replace self.projs once the dataframe is used everywhere
+        
+        #To insert later: save/load dataframe
+        #df.to_pickle(os.path.join(self.path, '.projects.pkl'))
 
         return projs
 
@@ -110,9 +120,9 @@ class Projects :
             self.console.print(proj)
             
 
-    def print_projects (self, sel='all', level=0):
-        if sel=='all':
-            sel = range(len(self.projs))         
+    def print_projects (self, sel=[], level=0):
+        if len(sel) == 0:
+            sel = range(self.projs_pd.shape[0])
         
         if level>1 :
             for c in sel :
@@ -124,15 +134,15 @@ class Projects :
             grid.add_column()
             grid.add_column(style="alert")
             for c in sel :
-                p = self.projs[c]
+                p = self.projs_pd.iloc[c]
                 td = ''
-                if 'todo' in p :
+                if type(p['todo']) == str :
                     if len(p['todo']) > 0 :
                         td = 'TD'
                 if level == 0:
-                    grid.add_row(str(p['count']), '[title]' + p['name'] + '[/]', td)
+                    grid.add_row(str(c+1), '[title]' + p['name'] + '[/]', td)
                 elif level == 1 :
-                    grid.add_row(str(p['count']), 
+                    grid.add_row(str(c+1),
                                  '[title]' + p['name'] + '[/]\n[path]' + p['path'] + '[/]',
                                  td)
             self.console.print(grid)
@@ -167,10 +177,9 @@ class Projects :
                 
 
     def search_projects(self, search) :
-        found = []
-        for c, p in enumerate(self.projs) :
-            if all([s.casefold() in p['name'].casefold() for s in search]) :
-                found.append(c)
+        search_regex = ''.join(['(?=.*' + s + ')' for s in search])
+        s = self.projs_pd['name'].str.contains(search_regex, regex=True, case=False)
+        found = np.flatnonzero(s)
         return found
         
     
@@ -289,7 +298,7 @@ class Projects :
         self.read_projects()
         self.console.print("Welcome to Projects!", style='bold red',
                            justify="center")
-        self.console.print("\n {} projects found".format(len(self.projs)))
+        self.console.print("\n {} projects found".format(self.projs_pd.shape[0]))
         prompt = self.MyPrompt(self)
         prompt.cmdloop()
     
