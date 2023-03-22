@@ -15,15 +15,13 @@ You should have received a copy of the GNU General Public License along with thi
     
 """
 
-
-
-
 import os, sys
 
 from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 from rich.markdown import Markdown
+from rich.theme import Theme
 from rich import box
 
 import argparse
@@ -31,15 +29,19 @@ import shlex
 from cmd import Cmd
 import subprocess
 
-
-
 path = '~/Documents/Recherche'
 
+style_theme = Theme({
+    "number": "bold dark_blue",
+    "title": "bold dark_magenta",
+    "alert": "bold red",
+    "path": "italic deep_sky_blue4"
+})
 
 class Projects :
 
-    def __init__(self, path):
-        self.console = Console()
+    def __init__(self, path, style_theme):
+        self.console = Console(theme=style_theme)
         self.path = os.path.expanduser(path)
 
     def read_proj_file (self, proj_file) :
@@ -101,7 +103,7 @@ class Projects :
     
     def print_project (self, proj, level=0) :
         self.console.print("[blue]{}.[/] {}".format(proj['count'], proj['name']), 
-                      style='bold magenta', highlight=False)
+                           style="title", highlight=False)
         if level==1:
             self.console.print('    ' + proj['path'], highlight=False)
         elif level>1:
@@ -112,22 +114,27 @@ class Projects :
         if sel=='all':
             sel = range(len(self.projs))         
         
-        if level>0 :
+        if level>1 :
             for c in sel :
                 self.print_project (self.projs[c], level=level)
         else :
             grid = Table(expand=True, show_header=False, show_lines=True, 
                          box=box.SIMPLE, show_edge=False)
-            grid.add_column(justify="right", style='bold blue')
-            grid.add_column(style='bold magenta')
-            grid.add_column(style='bold red')
+            grid.add_column(justify="right", style='number')
+            grid.add_column()
+            grid.add_column(style="alert")
             for c in sel :
                 p = self.projs[c]
                 td = ''
                 if 'todo' in p :
                     if len(p['todo']) > 0 :
                         td = 'TD'
-                grid.add_row(str(p['count']), p['name'], td)
+                if level == 0:
+                    grid.add_row(str(p['count']), '[title]' + p['name'] + '[/]', td)
+                elif level == 1 :
+                    grid.add_row(str(p['count']), 
+                                 '[title]' + p['name'] + '[/]\n[path]' + p['path'] + '[/]',
+                                 td)
             self.console.print(grid)
 
     
@@ -140,7 +147,7 @@ class Projects :
             
         md = Markdown(MARKDOWN)
         self.console.print(md)
-        self.console.print('\n\n{}'.format(p['path']), style="blue italic", highlight=False)
+        self.console.print('\n\n{}'.format(p['path']), style="path", highlight=False)
         
         
     def open_dir (self, c) :
@@ -287,6 +294,6 @@ class Projects :
         prompt.cmdloop()
     
 
-p = Projects(path)
+p = Projects(path, style_theme)
 p.run()
 
