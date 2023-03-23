@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with thi
 import os, sys
 import numpy as np
 import pandas as pd
+import re
 
 from rich.console import Console
 from rich.markup import escape
@@ -49,10 +50,10 @@ class Projects :
     def read_proj_file (self, proj_file) :
         proj = {}
         tree = []
-        kws = ['state', 'status', 'collabs']
         
         with open(proj_file) as f :
             lines = f.read().split('\n')
+            self.console.print(lines[0])
             
             for line in lines:
                 if len(line) > 0 :
@@ -64,10 +65,12 @@ class Projects :
                         tree.append([l, line.strip(), []])
                     else :
                         tree[-1][2].append(line.strip())
-                        for kw in kws:
-                            if '**' + kw + ':**' in line.casefold() :
-                                proj[kw] = line[5+len(kw):].strip()
-                        
+
+                        m = re.search("^\*\*.*:\*\*",line)
+                        if m :
+                            kw = m.group()[2:-3].casefold()
+                            proj[kw] = line[5+len(kw):].strip()
+                            
         for s in tree :
             s[2] = '\n'.join(s[2])
             if s[1].casefold() == 'to do' :
