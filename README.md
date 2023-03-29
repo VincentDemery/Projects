@@ -10,6 +10,7 @@ Once started, this script walks through the specified directory to find the proj
 - `search`: search words in the projects. The projects with the words searched for in their title are shown.
 - `expand`: prints the `project.md` file of a project indicated by its number.
 - `open`: opens the project directory given the project number.
+- `doc`: opens a document given the project and document numbers.
 - `todo`: prints all the todo sections, with the project titles as headers.
 - `update`: reload the projects, in case projects are added or modified during the execution.
 
