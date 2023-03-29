@@ -53,7 +53,6 @@ class Projects :
         
         with open(proj_file) as f :
             lines = f.read().split('\n')
-            self.console.print(lines[0])
             
             for line in lines:
                 if len(line) > 0 :
@@ -71,13 +70,19 @@ class Projects :
                             kw = m.group()[2:-3].casefold()
                             proj[kw] = line[5+len(kw):].strip()
                             
-        for s in tree :
-            s[2] = '\n'.join(s[2])
-            if s[1].casefold() == 'to do' :
-                proj['todo'] = s[2]
-            
         proj['name'] = tree[0][1]
         
+        for s in tree :
+            if s[1].casefold() == 'to do' :
+                proj['todo'] = '\n'.join(s[2])
+            elif s[1].casefold() == 'documents' :
+                docs = []
+                for line in s[2] :
+                    m = re.search("\[.*\]\(.*\)",line)
+                    if m :
+                        docs.append(m.group().split('](')[1][:-1])
+                proj['documents'] = docs
+            
         return proj
 
 
@@ -105,6 +110,8 @@ class Projects :
             
         pdf = pd.DataFrame(projs)
         
+        pdf.fillna('', inplace=True)
+        
         self.projs_pd = pdf
         #will replace self.projs once the dataframe is used everywhere
         
@@ -129,7 +136,7 @@ class Projects :
         
         if level>1 :
             for c in sel :
-                self.print_project (self.projs[c], level=level)
+                self.print_project (self.projs_pd.iloc[c], level=level)
         else :
             grid = Table(expand=True, show_header=False, show_lines=True, 
                          box=box.SIMPLE, show_edge=False)
@@ -168,6 +175,26 @@ class Projects :
         self.print_project(p, level=0)
         subprocess.run(['xdg-open', os.path.join(self.path, p['path'])],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    def open_dir (self, c) :
+        p = self.projs_pd.iloc[c]
+        
+        self.print_project(p, level=0)
+        subprocess.run(['xdg-open', os.path.join(self.path, p['path'])],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    def open_doc (self, c, n=0) :
+        p = self.projs_pd.iloc[c]
+        try : 
+            doc_path = os.path.join(self.path, p['path'], p['documents'][n])
+        except :
+            self.console.print("Invalid document number", style='italic red')
+            return False
+    
+        self.console.print(doc_path, style="path", highlight=False)
+        subprocess.run(['xdg-open', doc_path],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
     
     def print_todos (self):
         MARKDOWN = "# To do list"
@@ -269,6 +296,26 @@ class Projects :
             
             self.projs.open_dir(count-1)
             
+        def do_doc(self, inp):
+            """
+            Open a document
+            Usage: pdf [project number] [document number]
+            """
+            inp = inp.strip().split(' ')
+            
+            try :
+                count = int(inp[0])
+                p = self.projs.projs[count-1]
+                
+                n = 0
+                if len(inp) > 1 :
+                    n = int(inp[1]) - 1
+            except :
+                self.console.print('Not a valid number', style='italic red')
+                return False
+            
+            self.projs.open_doc(count-1, n)
+            
 
         def do_update(self, inp):
             """
@@ -284,6 +331,8 @@ class Projects :
         def default(self, inp):
             if inp == 'x' or inp == 'q':
                 return self.do_exit(inp)
+            elif inp[0] == 'd':
+                return self.do_doc(inp[1:])
             elif inp[0] == 'l':
                 return self.do_list(inp[1:])
             elif inp[0] == 's':
