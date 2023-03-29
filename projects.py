@@ -38,6 +38,7 @@ style_theme = Theme({
     "number": "bold dark_blue",
     "title": "bold dark_magenta",
     "alert": "bold red",
+    "alerti": "italic red",
     "path": "italic deep_sky_blue4"
 })
 
@@ -188,12 +189,15 @@ class Projects :
         try : 
             doc_path = os.path.join(self.path, p['path'], p['documents'][n])
         except :
-            self.console.print("Invalid document number", style='italic red')
+            self.console.print("Invalid document number", style='alerti')
             return False
-    
+        
         self.console.print(doc_path, style="path", highlight=False)
-        subprocess.run(['xdg-open', doc_path],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if os.path.isfile(doc_path) :
+            subprocess.run(['xdg-open', doc_path],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else :
+            self.console.print("Document not found", style='alerti')
     
     
     def print_todos (self):
@@ -243,7 +247,7 @@ class Projects :
             try : 
                 largs = self.listparser.parse_args(shlex.split(inp))
             except :
-                self.console.print("Invalid argument", style='italic red')
+                self.console.print("Invalid argument", style='alerti')
                 return False
                 
             self.projs.print_projects(level=largs.level)
@@ -268,7 +272,7 @@ class Projects :
                 count = int(inp)
                 p = self.projs.projs[count-1]
             except :
-                self.console.print('Not a valid number', style='italic red')
+                self.console.print('Not a valid number', style='alerti')
                 return False
                 
             self.projs.print_proj_md(count-1)
@@ -291,7 +295,7 @@ class Projects :
                 count = int(inp)
                 p = self.projs.projs[count-1]
             except :
-                self.console.print('Not a valid number', style='italic red')
+                self.console.print('Not a valid number', style='alerti')
                 return False
             
             self.projs.open_dir(count-1)
@@ -300,6 +304,7 @@ class Projects :
             """
             Open a document
             Usage: pdf [project number] [document number]
+            Shorthand: d
             """
             inp = inp.strip().split(' ')
             
@@ -311,7 +316,7 @@ class Projects :
                 if len(inp) > 1 :
                     n = int(inp[1]) - 1
             except :
-                self.console.print('Not a valid number', style='italic red')
+                self.console.print('Not a valid number', style='alerti')
                 return False
             
             self.projs.open_doc(count-1, n)
