@@ -19,6 +19,7 @@ import os, sys
 import numpy as np
 import pandas as pd
 import re
+import time
 
 from rich.console import Console
 from rich.markup import escape
@@ -89,6 +90,9 @@ class Projects :
 
     def read_projects (self, verb=False):
         projs = []
+        if verb :
+            self.console.print('Searching projects', end='')
+
         for d in os.walk(self.path) :
             if 'project.md' in d[2] :
                 proj_path = d[0][len(self.path)+1:]
@@ -96,7 +100,9 @@ class Projects :
                 p['path'] = proj_path
                 p['last_mod'] = os.path.getmtime(d[0])
                 projs.append(p)
-                
+                if verb :
+                    self.console.print('.', end='')
+                    
         projs = sorted(projs, key=lambda p: p['last_mod'])
         
         count = 0
@@ -105,7 +111,7 @@ class Projects :
             p['count'] = count
         
         if verb :
-            self.console.print('[number]{}[/] projects found'.format(len(projs)))
+            self.console.print('\n[number]{}[/] projects found'.format(len(projs)))
             
         pdf = pd.DataFrame(projs)
         
@@ -125,7 +131,7 @@ class Projects :
         if os.path.isfile(pickle_path):
             self.projs_pd = pd.read_pickle(pickle_path)
         else :
-            self.read_projects()
+            self.read_projects(verb=True)
             
 
     
@@ -164,6 +170,8 @@ class Projects :
                                  '[title]' + p['name'] + '[/]\n[path]' + p['path'] + '[/]',
                                  td)
             self.console.print(grid)
+        
+        self.console.rule(style='black')
 
     
     def print_proj_md (self, c) :
@@ -176,6 +184,7 @@ class Projects :
         md = Markdown(MARKDOWN)
         self.console.print(md)
         self.console.print('\n\n{}'.format(p['path']), style="path", highlight=False)
+        self.console.rule(style='black')
         
         
     def open_dir (self, c) :
@@ -183,6 +192,7 @@ class Projects :
         self.print_project(p, level=0)
         subprocess.run(['xdg-open', os.path.join(self.path, p['path'])],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.console.rule(style='black')
     
     def open_doc (self, c, n=0) :
         p = self.projs_pd.iloc[c]
@@ -198,6 +208,8 @@ class Projects :
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else :
             self.console.print("Document not found", style='alerti')
+            
+        self.console.rule(style='black')
     
     
     def print_todos (self):
@@ -210,6 +222,7 @@ class Projects :
         
         md = Markdown(md_string)
         self.console.print(md)
+        self.console.rule(style='black')
                 
 
     def search_projects(self, sargs) :
