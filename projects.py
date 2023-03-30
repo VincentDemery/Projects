@@ -210,8 +210,8 @@ class Projects :
         self.console.print(md)
                 
 
-    def search_projects(self, search) :
-        search_regex = ''.join(['(?=.*' + s + ')' for s in search])
+    def search_projects(self, sargs) :
+        search_regex = ''.join(['(?=.*' + s + ')' for s in sargs.search])
         s = self.projs_pd['name'].str.contains(search_regex, regex=True, case=False)
         found = np.flatnonzero(s)
         return found
@@ -259,7 +259,7 @@ class Projects :
             Shorthand: s
             """
             sargs = self.searchparser.parse_args(shlex.split(inp))
-            sel = self.projs.search_projects(sargs.search)
+            sel = self.projs.search_projects(sargs)
             self.projs.print_projects(sel, level=sargs.level)
         
         def do_expand(self, inp):
@@ -303,10 +303,10 @@ class Projects :
         def do_doc(self, inp):
             """
             Open a document
-            Usage: pdf [project number] [document number]
+            Usage: doc [project number] [document number]
             Shorthand: d
             """
-            inp = inp.strip().split(' ')
+            inp = shlex.split(inp)
             
             try :
                 count = int(inp[0])
@@ -348,6 +348,8 @@ class Projects :
                 return self.do_open(inp[1:])
             elif inp[0] == 't':
                 return self.do_todo(inp[1:])
+            elif inp[0] == 'u':
+                return self.do_update(inp[1:])
      
         do_EOF = do_exit
 
@@ -355,7 +357,8 @@ class Projects :
         self.read_projects()
         self.console.print("Welcome to Projects!", style='bold red',
                            justify="center")
-        self.console.print("\n {} projects found".format(self.projs_pd.shape[0]))
+        self.console.print("\n{} projects found".format(self.projs_pd.shape[0]),
+                           justify="right")
         prompt = self.MyPrompt(self)
         prompt.cmdloop()
     
