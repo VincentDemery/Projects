@@ -103,11 +103,9 @@ class Projects :
         for p in projs:
             count += 1
             p['count'] = count
-            
-        self.projs = projs
         
         if verb :
-            self.console.print('{} projects found'.format(len(projs)))
+            self.console.print('[number]{}[/] projects found'.format(len(projs)))
             
         pdf = pd.DataFrame(projs)
         
@@ -117,9 +115,18 @@ class Projects :
         #will replace self.projs once the dataframe is used everywhere
         
         #To insert later: save/load dataframe
-        #df.to_pickle(os.path.join(self.path, '.projects.pkl'))
+        pdf.to_pickle(os.path.join(self.path, '.projects.pkl'))
 
         return projs
+    
+    
+    def load_projects (self):
+        pickle_path = os.path.join(self.path, '.projects.pkl')
+        if os.path.isfile(pickle_path):
+            self.projs_pd = pd.read_pickle(pickle_path)
+        else :
+            self.read_projects()
+            
 
     
     def print_project (self, proj, level=0) :
@@ -160,7 +167,7 @@ class Projects :
 
     
     def print_proj_md (self, c) :
-        p = self.projs[c]
+        p = self.projs_pd.iloc[c]
         MARKDOWN = ""
         with open(os.path.join(self.path, p['path'], 'project.md')) as f :
             for l in f.readlines():
@@ -172,14 +179,7 @@ class Projects :
         
         
     def open_dir (self, c) :
-        p = self.projs[c]
-        self.print_project(p, level=0)
-        subprocess.run(['xdg-open', os.path.join(self.path, p['path'])],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    
-    def open_dir (self, c) :
         p = self.projs_pd.iloc[c]
-        
         self.print_project(p, level=0)
         subprocess.run(['xdg-open', os.path.join(self.path, p['path'])],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -201,12 +201,14 @@ class Projects :
     
     
     def print_todos (self):
-        MARKDOWN = "# To do list"
-        for p in self.projs :
-            if 'todo' in p :
-                if len(p['todo']) > 0 :
-                    MARKDOWN += '\n\n## [{}] {}\n\n{}'.format(p['count'], p['name'], p['todo'])
-        md = Markdown(MARKDOWN)
+        md_string = "# To do list"
+        hastodo = np.flatnonzero(self.projs_pd['todo'].str.len().gt(0))
+        
+        for c in hastodo :
+            p = self.projs_pd.iloc[c]
+            md_string += '\n\n## [{}] {}\n\n{}'.format(p['count'], p['name'], p['todo'])
+        
+        md = Markdown(md_string)
         self.console.print(md)
                 
 
@@ -270,7 +272,7 @@ class Projects :
             """
             try :
                 count = int(inp)
-                p = self.projs.projs[count-1]
+                p = self.projs.projs_pd.iloc[count-1]
             except :
                 self.console.print('Not a valid number', style='alerti')
                 return False
@@ -293,7 +295,7 @@ class Projects :
             
             try :
                 count = int(inp)
-                p = self.projs.projs[count-1]
+                p = self.projs.projs_pd.iloc[count-1]
             except :
                 self.console.print('Not a valid number', style='alerti')
                 return False
@@ -310,7 +312,7 @@ class Projects :
             
             try :
                 count = int(inp[0])
-                p = self.projs.projs[count-1]
+                p = self.projs.projs_pd.iloc[count-1]
                 
                 n = 0
                 if len(inp) > 1 :
@@ -354,11 +356,9 @@ class Projects :
         do_EOF = do_exit
 
     def run (self):
-        self.read_projects()
         self.console.print("Welcome to Projects!", style='bold red',
                            justify="center")
-        self.console.print("\n{} projects found".format(self.projs_pd.shape[0]),
-                           justify="right")
+        self.load_projects()
         prompt = self.MyPrompt(self)
         prompt.cmdloop()
     
