@@ -275,7 +275,11 @@ class Projects :
             """
             sargs = self.searchparser.parse_args(shlex.split(inp))
             sel = self.projs.search_projects(sargs)
-            self.projs.print_projects(sel, level=sargs.level)
+            #self.console.print(sel)
+            if len(sel) == 0:
+                self.console.print("Nothing found", style='alerti')
+            else :
+                self.projs.print_projects(sel, level=sargs.level)
         
         def do_expand(self, inp):
             """
