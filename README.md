@@ -2,7 +2,7 @@
 
 *Projects* is a simple project manager allowing to list the projects, search in the projects, and manage the to-do list of the projects.
 
-With *Projects*, a project is a directory containing a `project.md` file with a title (header level 1), a section named "To do" (whatever the header level) and eventually tags and other sections. An example is given in `project.md`.
+With *Projects*, a project is a directory containing a `project.md` file with a title (header level 1), and eventually sections named "To do" and "Documents", and eventually tags and other sections. An example is given in `project.md`. 
 
 Once started, this script walks through the specified directory to find the projects and then displays a prompt with the following commands:
 
