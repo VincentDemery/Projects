@@ -82,7 +82,7 @@ class Projects :
                 for line in s[2] :
                     m = re.search("\[.*\]\(.*\)",line)
                     if m :
-                        docs.append(m.group().split('](')[1][:-1])
+                        docs.append(m.group().split('](')[1].split(')')[0])
                 proj['documents'] = docs
             
         return proj
@@ -275,7 +275,6 @@ class Projects :
             """
             sargs = self.searchparser.parse_args(shlex.split(inp))
             sel = self.projs.search_projects(sargs)
-            #self.console.print(sel)
             if len(sel) == 0:
                 self.console.print("Nothing found", style='alerti')
             else :
