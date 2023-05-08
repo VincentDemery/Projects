@@ -84,6 +84,8 @@ class Projects :
                     if m :
                         docs.append(m.group().split('](')[1].split(')')[0])
                 proj['documents'] = docs
+        
+        proj['search'] = " ".join([proj['name'], proj.get('keywords', "")]).strip()
             
         return proj
 
@@ -227,7 +229,7 @@ class Projects :
 
     def search_projects(self, sargs) :
         search_regex = ''.join(['(?=.*' + s + ')' for s in sargs.search])
-        s = self.projs_pd['name'].str.contains(search_regex, regex=True, case=False)
+        s = self.projs_pd['search'].str.contains(search_regex, regex=True, case=False)
         found = np.flatnonzero(s)
         return found
         
@@ -381,4 +383,3 @@ class Projects :
 
 p = Projects(path, style_theme)
 p.run()
-
