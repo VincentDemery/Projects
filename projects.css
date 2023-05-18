@@ -1,0 +1,56 @@
+Screen {
+    layers: below below2 above above2;
+    align: center middle;
+}
+
+
+#list {
+    layer: below;
+    width: 100%;
+    height: 100%;
+}
+
+#vs {
+    layer: above;
+    align: center middle;
+    width: 100%;
+    height: 100%;
+    margin-bottom: 1;
+    /*border: outer $primary-darken-1;*/
+}
+
+#expand {
+    /*align: center middle;*/
+    width: 100%;
+    height: auto;
+}
+
+#search {
+    layer:below;
+    dock: bottom;
+    width: 100%;
+    height: 4;
+}
+
+#test {
+    dock: bottom;
+    width: 100%;
+    height: 4;
+    color: #0f2b41;
+    background: dodgerblue;
+}
+
+#update {
+    layer: above2;
+    align: center middle;
+    width: 50%;
+    height: 50%;
+}
+
+#fsb {
+    layer:below2;
+    dock:right;
+    height: auto;
+    width: auto;
+    border: outer $primary-darken-1;
+}

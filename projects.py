@@ -20,33 +20,21 @@ import numpy as np
 import pandas as pd
 import re
 import time
+import configparser
 
-from rich.console import Console
-from rich.markup import escape
-from rich.table import Table
-from rich.markdown import Markdown
-from rich.theme import Theme
-from rich import box
-
-import argparse
-import shlex
-from cmd import Cmd
 import subprocess
+
+from itertools import cycle
+from textual.app import App, ComposeResult
+from textual.widgets import Input, Static, Button, DataTable, Footer, Markdown, LoadingIndicator, Checkbox
+from textual.binding import Binding
+from textual.containers import Vertical, VerticalScroll
 
 path = '~/Documents/Recherche'
 
-style_theme = Theme({
-    "number": "bold dark_blue",
-    "title": "bold dark_magenta",
-    "alert": "bold red",
-    "alerti": "italic red",
-    "path": "italic deep_sky_blue4"
-})
-
 class Projects :
 
-    def __init__(self, path, style_theme):
-        self.console = Console(theme=style_theme)
+    def __init__(self, path):
         self.path = os.path.expanduser(path)
 
     def read_proj_file (self, proj_file) :
@@ -90,10 +78,8 @@ class Projects :
         return proj
 
 
-    def read_projects (self, verb=False):
+    def read_projects (self):
         projs = []
-        if verb :
-            self.console.print('Searching projects', end='')
 
         for d in os.walk(self.path) :
             if 'project.md' in d[2] :
@@ -102,8 +88,6 @@ class Projects :
                 p['path'] = proj_path
                 p['last_mod'] = os.path.getmtime(d[0])
                 projs.append(p)
-                if verb :
-                    self.console.print('.', end='')
                     
         projs = sorted(projs, key=lambda p: p['last_mod'])
         
@@ -111,18 +95,13 @@ class Projects :
         for p in projs:
             count += 1
             p['count'] = count
-        
-        if verb :
-            self.console.print('\n[number]{}[/] projects found'.format(len(projs)))
-            
+                    
         pdf = pd.DataFrame(projs)
         
         pdf.fillna('', inplace=True)
         
         self.projs_pd = pdf
-        #will replace self.projs once the dataframe is used everywhere
         
-        #To insert later: save/load dataframe
         pdf.to_pickle(os.path.join(self.path, '.projects.pkl'))
 
         return projs
@@ -136,250 +115,228 @@ class Projects :
             self.read_projects(verb=True)
             
 
-    
-    def print_project (self, proj, level=0) :
-        self.console.print("[blue]{}.[/] {}".format(proj['count'], proj['name']), 
-                           style="title", highlight=False)
-        if level==1:
-            self.console.print('    ' + proj['path'], highlight=False)
-        elif level>1:
-            self.console.print(proj)
-            
-
-    def print_projects (self, sel=[], level=0):
-        if len(sel) == 0:
-            sel = range(self.projs_pd.shape[0])
-        
-        if level>1 :
-            for c in sel :
-                self.print_project (self.projs_pd.iloc[c], level=level)
-        else :
-            grid = Table(expand=True, show_header=False, show_lines=True, 
-                         box=box.SIMPLE, show_edge=False)
-            grid.add_column(justify="right", style='number')
-            grid.add_column()
-            grid.add_column(style="alert")
-            for c in sel :
-                p = self.projs_pd.iloc[c]
-                td = ''
-                if type(p['todo']) == str :
-                    if len(p['todo']) > 0 :
-                        td = 'TD'
-                if level == 0:
-                    grid.add_row(str(c+1), '[title]' + p['name'] + '[/]', td)
-                elif level == 1 :
-                    grid.add_row(str(c+1),
-                                 '[title]' + p['name'] + '[/]\n[path]' + p['path'] + '[/]',
-                                 td)
-            self.console.print(grid)
-        
-        self.console.rule(style='black')
-
-    
-    def print_proj_md (self, c) :
-        p = self.projs_pd.iloc[c]
-        MARKDOWN = ""
-        with open(os.path.join(self.path, p['path'], 'project.md')) as f :
-            for l in f.readlines():
-                MARKDOWN +=l 
-            
-        md = Markdown(MARKDOWN)
-        self.console.print(md)
-        self.console.print('\n\n{}'.format(p['path']), style="path", highlight=False)
-        self.console.rule(style='black')
-        
-        
-    def open_dir (self, c) :
-        p = self.projs_pd.iloc[c]
-        self.print_project(p, level=0)
-        subprocess.run(['xdg-open', os.path.join(self.path, p['path'])],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        self.console.rule(style='black')
-    
-    def open_doc (self, c, n=0) :
-        p = self.projs_pd.iloc[c]
-        try : 
-            doc_path = os.path.join(self.path, p['path'], p['documents'][n])
-        except :
-            self.console.print("Invalid document number", style='alerti')
-            return False
-        
-        self.console.print(doc_path, style="path", highlight=False)
-        if os.path.isfile(doc_path) :
-            subprocess.run(['xdg-open', doc_path],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        else :
-            self.console.print("Document not found", style='alerti')
-            
-        self.console.rule(style='black')
-    
-    
-    def print_todos (self):
-        md_string = "# To do list"
-        hastodo = np.flatnonzero(self.projs_pd['todo'].str.len().gt(0))
-        
-        for c in hastodo :
-            p = self.projs_pd.iloc[c]
-            md_string += '\n\n## [{}] {}\n\n{}'.format(p['count'], p['name'], p['todo'])
-        
-        md = Markdown(md_string)
-        self.console.print(md)
-        self.console.rule(style='black')
-                
-
-    def search_projects(self, sargs) :
-        search_regex = ''.join(['(?=.*' + s + ')' for s in sargs.search])
+    def search_projects(self, search) :
+        #search_regex = ''.join(['(?=.*' + s + ')' for s in sargs.search])
+        search_regex = ''.join(['(?=.*' + s + ')' for s in search])
         s = self.projs_pd['search'].str.contains(search_regex, regex=True, case=False)
         found = np.flatnonzero(s)
         return found
         
+
+
+class MyApp(App):
+    TITLE = "Projects"
+    CSS_PATH = "projects_t.css"
+    CONF = "projects.conf"
     
-    class MyPrompt(Cmd):
-        prompt = 'pjs> '
-                                     
-        def __init__(self, projs, completekey='tab', stdin=None, stdout=None):
-            Cmd.__init__(self, completekey=completekey, stdin=stdin, stdout=stdout)
-            
-            self.projs = projs
-            self.console = projs.console
-            
-            self.searchparser = argparse.ArgumentParser()
-            self.searchparser.add_argument("search", nargs='+')
-            self.searchparser.add_argument("-a", "--active", help="excludes published works",
-                                      action="store_true")
-            self.searchparser.add_argument("-l", "--level", help="level of detail", 
-                                      default=0, type=int)
+    BINDINGS = [
+        Binding(key="q", action="quit", description="Quit"),
+        Binding(key="s", action="search", description="Search"),
+        Binding(key="e", action="expand", description="Expand"),
+        Binding(key="o", action="open", description="Open"),
+        Binding(key="t", action="show_todos", description="Todo list"),
+        Binding(key="u", action="update", description="Update"),
+        Binding(key="escape", action="escape", description="Return", show=False),
+        Binding(key="ctrl+f", action="show_filters", description="Filters"),
+    ]
 
-
-            self.listparser = argparse.ArgumentParser()
-            self.listparser.add_argument("-l", "--level", help="level of detail", 
-                                      default=0, type=int)
-            
+    def compose(self) -> ComposeResult:
+        self.plist = DataTable(id="list")
+        yield self.plist
+        self.vs = VerticalScroll(id="vs")
+        with self.vs :
+            yield Markdown(id="expand")
+        self.search = Input(placeholder="Search", id="search")
+        yield self.search
+        yield Footer()
         
-        def do_list(self, inp):
-            """
-            List all the projects
-            Shorthand: l
-            """
-            try : 
-                largs = self.listparser.parse_args(shlex.split(inp))
-            except :
-                self.console.print("Invalid argument", style='alerti')
-                return False
-                
-            self.projs.print_projects(level=largs.level)
-                
-        def do_search(self, inp):
-            """
-            Search in projects
-            Usage: search [strings to search separated by spaces]
-            Shorthand: s
-            """
-            sargs = self.searchparser.parse_args(shlex.split(inp))
-            sel = self.projs.search_projects(sargs)
-            if len(sel) == 0:
-                self.console.print("Nothing found", style='alerti')
+        self.fsb = Vertical(id="fsb")
+        with self.fsb :
+            self.cb_active = Checkbox("Active", True)
+            self.cb_published = Checkbox("Published")
+            self.cb_other = Checkbox("Other")
+            yield Static("Filters")
+            yield self.cb_active
+            yield self.cb_published
+            yield self.cb_other
+
+        
+    def filter_sel(self):
+        sel = self.sel
+        if len(sel) == 0:
+            sel = range(self.projs.projs_pd.shape[0])
+        
+        new_sel = []
+        for c in sel :
+            p = self.projs.projs_pd.iloc[c]
+            pstate = p['state'].casefold()
+            if pstate == 'active' :
+                if self.cb_active.value :
+                    new_sel.append(c)
+            elif pstate == 'published' :
+                if self.cb_published.value :
+                    new_sel.append(c)
             else :
-                self.projs.print_projects(sel, level=sargs.level)
+                if self.cb_other.value :
+                    new_sel.append(c)
         
-        def do_expand(self, inp):
-            """
-            Display the full information on a project
-            Usage: expand [project number]
-            Shorthand: e
-            """
-            try :
-                count = int(inp)
-                p = self.projs.projs_pd.iloc[count-1]
-            except :
-                self.console.print('Not a valid number', style='alerti')
-                return False
-                
-            self.projs.print_proj_md(count-1)
-            
- 
-        def do_todo(self, inp):
-            """
-            Show the list of todos
-            Shorthand: t
-            """
-            self.projs.print_todos()
-            
-        def do_open(self, inp):
-            """
-            Open a project in the file manager
-            Usage: open [project number]
-            Shorthand: o"""
-            
-            try :
-                count = int(inp)
-                p = self.projs.projs_pd.iloc[count-1]
-            except :
-                self.console.print('Not a valid number', style='alerti')
-                return False
-            
-            self.projs.open_dir(count-1)
-            
-        def do_doc(self, inp):
-            """
-            Open a document
-            Usage: doc [project number] [document number]
-            Shorthand: d
-            """
-            inp = shlex.split(inp)
-            
-            try :
-                count = int(inp[0])
-                p = self.projs.projs_pd.iloc[count-1]
-                
-                n = 0
-                if len(inp) > 1 :
-                    n = int(inp[1]) - 1
-            except :
-                self.console.print('Not a valid number', style='alerti')
-                return False
-            
-            self.projs.open_doc(count-1, n)
-            
-
-        def do_update(self, inp):
-            """
-            Update the projects list
-            Shorthand: u
-            """
-            self.projs.read_projects(verb=True)
-
-        def do_exit(self, inp):
-            """Exit the application. Shorthand: x q Ctrl-D."""
-            return True
+        self.sel = new_sel
         
-        def default(self, inp):
-            if inp == 'x' or inp == 'q':
-                return self.do_exit(inp)
-            elif inp[0] == 'd':
-                return self.do_doc(inp[1:])
-            elif inp[0] == 'l':
-                return self.do_list(inp[1:])
-            elif inp[0] == 's':
-                return self.do_search(inp[1:])
-            elif inp[0] == 'e':
-                return self.do_expand(inp[1:])
-            elif inp[0] == 'o':
-                return self.do_open(inp[1:])
-            elif inp[0] == 't':
-                return self.do_todo(inp[1:])
-            elif inp[0] == 'u':
-                return self.do_update(inp[1:])
-     
-        do_EOF = do_exit
+    
+    
+    def print_projects_list(self):
+        self.filter_sel()
+        sel = self.sel
+        
+        self.plist.clear()
+        
+        for c in sel :
+            p = self.projs.projs_pd.iloc[c]
+            td = ""
+            if len(p['todo'])>0:
+                td = "*"
+            self.plist.add_row(td, p['name'], height=1)
+            
+    
+    def on_mount(self) -> None:
+        self.config = configparser.ConfigParser()
+        self.config.read('projects.conf')
+        
+        if not self.config.getboolean('DEFAULT', 'dark') :
+            self.action_toggle_dark()
+        
+        
+        self.projs = Projects(self.config['DEFAULT']['path'])
+        self.projs.load_projects()
+        self.sel = []
+        
+        table = self.plist
+        table.cursor_type = "row"
+        table.zebra_stripes = True
+        table.add_columns("T", "Name")
+        table.show_header = False
+        self.print_projects_list()
+        table.focus()
+        
+        self.vs.display = False
+        self.fsb.display = False
 
-    def run (self):
-        self.console.print("Welcome to Projects!", style='bold red',
-                           justify="center")
-        self.load_projects()
-        prompt = self.MyPrompt(self)
-        prompt.cmdloop()
+
+    def action_search(self):
+        self.search.focus()
     
 
-p = Projects(path, style_theme)
-p.run()
+    def action_expand(self, toggle=True, count=-1):
+        vs = self.vs
+        expand = self.query_one(Markdown)
+        
+        if vs.display and toggle :
+            vs.display = False
+        else :
+            if count==-1 :
+                table = self.plist
+                
+                if self.sel == [] :
+                    self.expanded = table.cursor_row
+                else :
+                    self.expanded = self.sel[table.cursor_row]
+            else :
+                self.expanded = count
+
+            p = self.projs.projs_pd.iloc[self.expanded]
+            MARKDOWN = ""
+            with open(os.path.join(self.projs.path, p['path'], 'project.md')) as f :
+                for l in f.readlines():
+                    MARKDOWN +=l 
+
+            expand.update(MARKDOWN)
+            
+            vs.display = True
+
+    def action_open(self):
+        table = self.plist
+        if self.sel == [] :
+            c = table.cursor_row
+        else :
+            c = self.sel[table.cursor_row]
+            
+        p = self.projs.projs_pd.iloc[c]
+        
+        subprocess.run(['xdg-open', os.path.join(self.projs.path, p['path'])],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    
+    def action_show_todos (self):
+        MARKDOWN = "# To do list"
+        hastodo = np.flatnonzero(self.projs.projs_pd['todo'].str.len().gt(0))
+        
+        for c in hastodo :
+            p = self.projs.projs_pd.iloc[c]
+            MARKDOWN += '\n\n## [{}]({})\n\n{}'.format(p['name'], p['count'], p['todo'])
+        
+        expand = self.query_one(Markdown)
+        expand.update(MARKDOWN)
+            
+        self.vs.display = True
+    
+    async def action_update(self):
+        #li = LoadingIndicator(id="update")
+        #await self.mount(li)
+        
+        self.projs.read_projects()
+        self.print_projects_list()
+        
+        #time.sleep(5)
+        #li.remove()
+
+        
+    def clear_search(self):
+        search = self.search
+        search.action_end()
+        search.action_delete_left_all()
+
+            
+    def action_escape(self):
+        if not self.vs.display :
+            self.clear_search()
+            if not self.sel == [] :
+                c = self.sel[self.plist.cursor_row]
+                self.sel = []
+                self.print_projects_list()
+                self.plist.move_cursor(row=c)
+                self.plist.focus()
+        else:
+            self.vs.display = False
+        
+    def action_show_filters(self):  
+        if not self.vs.display :
+            self.fsb.display = not self.fsb.display
+    
+    def on_input_submitted(self):
+        self.sel = self.projs.search_projects(self.search.value.split(" "))
+        self.print_projects_list()
+        self.plist.focus() #Does not seem to produce anything
+        
+    
+    def on_markdown_link_clicked(self, message: Markdown.LinkClicked):
+        if message.href.isdigit() :
+            c = int(message.href)
+            self.action_expand(toggle=False, count=c-1)
+        else :
+            p = self.projs.projs_pd.iloc[self.expanded]
+            doc_path = os.path.join(self.projs.path, p['path'], message.href)
+            if os.path.isfile(doc_path) :
+                subprocess.run(['xdg-open', doc_path],
+                               stdout=subprocess.DEVNULL, 
+                               stderr=subprocess.DEVNULL)
+                               
+    def on_checkbox_changed(self, message: Checkbox.Changed):
+        self.sel = self.projs.search_projects(self.search.value.split(" "))
+        self.print_projects_list()
+                               
+                               
+        
+        
+if __name__ == "__main__":
+    app = MyApp()
+    app.run()
+
