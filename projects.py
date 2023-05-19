@@ -325,9 +325,14 @@ class MyApp(App):
             p = self.projs.projs_pd.iloc[self.expanded]
             doc_path = os.path.join(self.projs.path, p['path'], message.href)
             if os.path.isfile(doc_path) :
-                subprocess.run(['xdg-open', doc_path],
-                               stdout=subprocess.DEVNULL, 
-                               stderr=subprocess.DEVNULL)
+                to_open = doc_path
+            else :
+                to_open = message.href
+
+            subprocess.run(['xdg-open', to_open],
+                           stdout=subprocess.DEVNULL, 
+                           stderr=subprocess.DEVNULL)
+                               
                                
     def on_checkbox_changed(self, message: Checkbox.Changed):
         self.sel = self.projs.search_projects(self.search.value.split(" "))
