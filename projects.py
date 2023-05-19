@@ -126,7 +126,7 @@ class Projects :
 
 class MyApp(App):
     TITLE = "Projects"
-    CSS_PATH = "projects_t.css"
+    CSS_PATH = "projects.css"
     CONF = "projects.conf"
     
     BINDINGS = [
@@ -200,7 +200,7 @@ class MyApp(App):
     
     def on_mount(self) -> None:
         self.config = configparser.ConfigParser()
-        self.config.read('projects.conf')
+        self.config.read(os.path.join(os.path.dirname(__file__), 'projects.conf'))
         
         if not self.config.getboolean('DEFAULT', 'dark') :
             self.action_toggle_dark()
