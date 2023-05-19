@@ -278,7 +278,7 @@ class MyApp(App):
             
         self.vs.display = True
     
-    async def action_update(self):
+    def action_update(self):
         #li = LoadingIndicator(id="update")
         #await self.mount(li)
         
