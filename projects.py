@@ -255,10 +255,13 @@ class MyApp(App):
 
     def action_open(self):
         table = self.plist
-        if self.sel == [] :
-            c = table.cursor_row
+        if self.vs.display :
+            c = self.expanded
         else :
-            c = self.sel[table.cursor_row]
+            if self.sel == [] :
+                c = table.cursor_row
+            else :
+                c = self.sel[table.cursor_row]
             
         p = self.projs.projs_pd.iloc[c]
         
