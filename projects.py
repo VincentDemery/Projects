@@ -140,25 +140,29 @@ class MyApp(App):
     ]
 
     def compose(self) -> ComposeResult:
-        self.plist = DataTable(id="list")
-        yield self.plist
-        self.vs = VerticalScroll(id="vs")
-        with self.vs :
-            yield Markdown(id="expand")
-        self.search = Input(placeholder="Search", id="search")
-        yield self.search
+        self.main_window = Vertical(id="main_window")
+        with self.main_window :
+            self.plist = DataTable(id="list")
+            yield self.plist
+            self.search = Input(placeholder="Search", id="search")
+            yield self.search
+            self.fsb = Vertical(id="fsb")
+            with self.fsb :
+                self.cb_active = Checkbox("Active", True)
+                self.cb_published = Checkbox("Published")
+                self.cb_other = Checkbox("Other")
+                yield Static("Filters")
+                yield self.cb_active
+                yield self.cb_published
+                yield self.cb_other
+                
+            self.vs = VerticalScroll(id="vs")
+            with self.vs :
+                yield Markdown(id="expand")
+
         yield Footer()
         
-        self.fsb = Vertical(id="fsb")
-        with self.fsb :
-            self.cb_active = Checkbox("Active", True)
-            self.cb_published = Checkbox("Published")
-            self.cb_other = Checkbox("Other")
-            yield Static("Filters")
-            yield self.cb_active
-            yield self.cb_published
-            yield self.cb_other
-
+        
         
     def filter_sel(self):
         sel = self.sel
