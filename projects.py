@@ -25,8 +25,9 @@ import configparser
 import subprocess
 
 from itertools import cycle
+from textual import on
 from textual.app import App, ComposeResult
-from textual.widgets import Input, Static, Button, DataTable, Footer, Markdown, LoadingIndicator, Checkbox
+from textual.widgets import Input, Static, Button, DataTable, Footer, Markdown, LoadingIndicator, Checkbox, SelectionList, Pretty
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 
@@ -148,13 +149,11 @@ class MyApp(App):
             yield self.search
             self.fsb = Vertical(id="fsb")
             with self.fsb :
-                self.cb_active = Checkbox("Active", True)
-                self.cb_published = Checkbox("Published")
-                self.cb_other = Checkbox("Other")
-                yield Static("Filters")
-                yield self.cb_active
-                yield self.cb_published
-                yield self.cb_other
+                self.sl_filters = SelectionList[str](
+                    ("Active", "active", True),
+                    ("Published", "published", True),
+                    ("Other", "other"))
+                yield self.sl_filters
                 
             self.vs = VerticalScroll(id="vs")
             with self.vs :
@@ -174,15 +173,15 @@ class MyApp(App):
             p = self.projs.projs_pd.iloc[c]
             pstate = p['state'].casefold()
             if pstate == 'active' :
-                if self.cb_active.value :
+                if 'active' in self.sl_filters.selected :
                     new_sel.append(c)
-            elif pstate == 'published' :
-                if self.cb_published.value :
+            elif pstate == 'published':
+                if 'published' in self.sl_filters.selected :
                     new_sel.append(c)
             else :
-                if self.cb_other.value :
+                if 'other' in self.sl_filters.selected :
                     new_sel.append(c)
-        
+            
         self.sel = new_sel
         
     
@@ -223,6 +222,7 @@ class MyApp(App):
         
         self.vs.display = False
         self.fsb.display = False
+        self.fsb.border_title = 'Filters'
 
 
     def action_search(self):
@@ -316,6 +316,8 @@ class MyApp(App):
     def action_show_filters(self):  
         if not self.vs.display :
             self.fsb.display = not self.fsb.display
+            if self.fsb.display :
+                self.sl_filters.focus()
     
     def on_input_submitted(self):
         self.sel = self.projs.search_projects(self.search.value.split(" "))
@@ -343,9 +345,14 @@ class MyApp(App):
     def on_checkbox_changed(self, message: Checkbox.Changed):
         self.sel = self.projs.search_projects(self.search.value.split(" "))
         self.print_projects_list()
-                               
-                               
         
+#    def on_selectionlist_selectedchanged(self, message: SelectionList.SelectedChanged):
+#        self.pretty.update(self.sl_filters.selected)
+    
+    @on(SelectionList.SelectedChanged)
+    def update_selected_view(self) -> None:
+        self.sel = self.projs.search_projects(self.search.value.split(" "))
+        self.print_projects_list()
         
 if __name__ == "__main__":
     app = MyApp()
