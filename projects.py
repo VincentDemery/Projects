@@ -30,7 +30,6 @@ from textual.widgets import Input, Static, Button, DataTable, Footer, Markdown, 
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 
-path = '~/Documents/Recherche'
 
 class Projects :
 
@@ -112,7 +111,7 @@ class Projects :
         if os.path.isfile(pickle_path):
             self.projs_pd = pd.read_pickle(pickle_path)
         else :
-            self.read_projects(verb=True)
+            self.read_projects()
             
 
     def search_projects(self, search) :
