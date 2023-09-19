@@ -247,12 +247,8 @@ class MyApp(App):
                 self.expanded = count
 
             p = self.projs.projs_pd.iloc[self.expanded]
-            MARKDOWN = ""
             with open(os.path.join(self.projs.path, p['path'], 'project.md')) as f :
-                for l in f.readlines():
-                    MARKDOWN +=l 
-
-            expand.update(MARKDOWN)
+                expand.update(f.read())
             
             vs.display = True
 
