@@ -23,8 +23,9 @@ import time
 import configparser
 
 import subprocess
-
+from urllib.parse import unquote
 from itertools import cycle
+
 from textual import on
 from textual.app import App, ComposeResult
 from textual.widgets import Input, Static, Button, DataTable, Footer, Markdown, LoadingIndicator, Checkbox, SelectionList, Pretty
@@ -322,16 +323,17 @@ class MyApp(App):
         
     
     def on_markdown_link_clicked(self, message: Markdown.LinkClicked):
-        if message.href.isdigit() :
-            c = int(message.href)
+        m = unquote(message.href)
+        if m.isdigit() :
+            c = int(m)
             self.action_expand(toggle=False, count=c-1)
         else :
             p = self.projs.projs_pd.iloc[self.expanded]
-            doc_path = os.path.join(self.projs.path, p['path'], message.href)
+            doc_path = os.path.join(self.projs.path, p['path'], m)
             if os.path.isfile(doc_path) :
                 to_open = doc_path
             else :
-                to_open = message.href
+                to_open = m
 
             subprocess.run(['xdg-open', to_open],
                            stdout=subprocess.DEVNULL, 
