@@ -43,23 +43,23 @@ class Projects :
         tree = []
         
         with open(proj_file) as f :
-            lines = f.read().split('\n')
-            
-            for line in lines:
-                if len(line) > 0 :
-                    if line[0] == '#' :
-                        l = 0
-                        while line[0] == '#' :
-                            l += 1
-                            line = line[1:]
-                        tree.append([l, line.strip(), []])
-                    else :
-                        tree[-1][2].append(line.strip())
+            proj['md'] = f.read()
+        
+        for line in proj['md'].split('\n') :
+            if len(line) > 0 :
+                if line[0] == '#' :
+                    l = 0
+                    while line[0] == '#' :
+                        l += 1
+                        line = line[1:]
+                    tree.append([l, line.strip(), []])
+                else :
+                    tree[-1][2].append(line.strip())
 
-                        m = re.search("^\*\*.*:\*\*",line)
-                        if m :
-                            kw = m.group()[2:-3].casefold()
-                            proj[kw] = line[5+len(kw):].strip()
+                    m = re.search("^\*\*.*:\*\*",line)
+                    if m :
+                        kw = m.group()[2:-3].casefold()
+                        proj[kw] = line[5+len(kw):].strip()
                             
         proj['name'] = tree[0][1]
         
@@ -248,8 +248,7 @@ class MyApp(App):
                 self.expanded = count
 
             p = self.projs.projs_pd.iloc[self.expanded]
-            with open(os.path.join(self.projs.path, p['path'], 'project.md')) as f :
-                expand.update(f.read())
+            expand.update(p['md'])
             
             vs.display = True
 
