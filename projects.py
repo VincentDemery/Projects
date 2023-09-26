@@ -66,13 +66,6 @@ class Projects :
         for s in tree :
             if s[1].casefold() == 'to do' :
                 proj['todo'] = '\n'.join(s[2])
-            elif s[1].casefold() == 'documents' :
-                docs = []
-                for line in s[2] :
-                    m = re.search("\[.*\]\(.*\)",line)
-                    if m :
-                        docs.append(m.group().split('](')[1].split(')')[0])
-                proj['documents'] = docs
         
         proj['search'] = " ".join([proj['name'], proj.get('keywords', "")]).strip()
             
