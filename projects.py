@@ -131,6 +131,7 @@ class MyApp(App):
         Binding(key="t", action="show_todos", description="Todo list"),
         Binding(key="u", action="update", description="Update"),
         Binding(key="escape", action="escape", description="Return", show=False),
+        Binding(key="ctrl+e", action="edit_project_file", description="Edit"),
         Binding(key="ctrl+f", action="show_filters", description="Filters"),
     ]
 
@@ -245,7 +246,8 @@ class MyApp(App):
             
             vs.display = True
 
-    def action_open(self):
+    
+    def get_selected_project(self):
         table = self.plist
         if self.vs.display :
             c = self.expanded
@@ -256,10 +258,22 @@ class MyApp(App):
                 c = self.sel[table.cursor_row]
             
         p = self.projs.projs_pd.iloc[c]
+        return p
+
+
+    def action_open(self):
+        p = self.get_selected_project()
         
         subprocess.run(['xdg-open', os.path.join(self.projs.path, p['path'])],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+    def action_edit_project_file(self):
+        p = self.get_selected_project()
+        subprocess.run(['xdg-open', os.path.join(self.projs.path, p['path'], 'project.md')],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
+
     def action_show_todos (self):
         MARKDOWN = "# To do list"
         hastodo = np.flatnonzero(self.projs.projs_pd['todo'].str.len().gt(0))
