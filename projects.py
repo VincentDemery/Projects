@@ -34,17 +34,19 @@ from textual.containers import Vertical, VerticalScroll
 
 
 class Projects :
-
     def __init__(self, path):
         self.path = os.path.expanduser(path)
 
-    def read_proj_file (self, proj_file) :
+    def read_proj_file (self, path) :
         proj = {}
-        tree = []
         
-        with open(proj_file) as f :
+        proj['path'] = path[len(self.path)+1:]
+        proj['last_mod'] = os.path.getmtime(path)
+        
+        with open(os.path.join(path, 'project.md')) as f :
             proj['md'] = f.read()
         
+        tree = []
         for line in proj['md'].split('\n') :
             if len(line) > 0 :
                 if line[0] == '#' :
@@ -77,10 +79,7 @@ class Projects :
 
         for d in os.walk(self.path) :
             if 'project.md' in d[2] :
-                proj_path = d[0][len(self.path)+1:]
-                p = self.read_proj_file(os.path.join(d[0], 'project.md'))
-                p['path'] = proj_path
-                p['last_mod'] = os.path.getmtime(d[0])
+                p = self.read_proj_file(d[0])
                 projs.append(p)
                     
         projs = sorted(projs, key=lambda p: p['last_mod'])
@@ -96,9 +95,13 @@ class Projects :
         
         self.projs_pd = pdf
         
-        pdf.to_pickle(os.path.join(self.path, '.projects.pkl'))
+        self.write_projects()
 
         return projs
+        
+        
+    def write_projects (self):
+        self.projs_pd.to_pickle(os.path.join(self.path, '.projects.pkl'))
     
     
     def load_projects (self):
@@ -129,7 +132,8 @@ class MyApp(App):
         Binding(key="e", action="expand", description="Expand"),
         Binding(key="o", action="open", description="Open"),
         Binding(key="t", action="show_todos", description="Todo list"),
-        Binding(key="u", action="update", description="Update"),
+        Binding(key="u", action="update_selected", description="Update selected"),
+        Binding(key="ctrl+u", action="full_update", description="Full update"),
         Binding(key="escape", action="escape", description="Return", show=False),
         Binding(key="ctrl+e", action="edit_project_file", description="Edit"),
         Binding(key="ctrl+f", action="show_filters", description="Filters"),
@@ -179,11 +183,11 @@ class MyApp(App):
             
         self.sel = new_sel
         
-    
-    
-    def print_projects_list(self):
+    def print_projects_list(self, keep_cursor=False):
         self.filter_sel()
         sel = self.sel
+        
+        row = self.plist.cursor_row
         
         self.plist.clear()
         
@@ -193,6 +197,9 @@ class MyApp(App):
             if len(p['todo'])>0:
                 td = "*"
             self.plist.add_row(td, p['name'], height=1)
+            
+        if keep_cursor : 
+            self.plist.move_cursor(row=row)
             
     
     def on_mount(self) -> None:
@@ -287,7 +294,31 @@ class MyApp(App):
             
         self.vs.display = True
     
-    def action_update(self):
+    
+    def action_update_selected(self):
+        # MAYBE MOVE TO THE PROJECT CLASS
+        
+        psel = self.get_selected_project()
+        c = psel['count']
+        
+        p = self.projs.read_proj_file(os.path.join(self.projs.path, psel['path']))
+        
+        for field, values in self.projs.projs_pd.iteritems():
+            self.projs.projs_pd.at[c-1, field] = p.get(field, "")
+
+        self.projs.projs_pd.at[c-1, 'count'] = c
+        
+        self.projs.write_projects()
+        
+        row = self.plist.cursor_row
+        self.print_projects_list(keep_cursor=True)
+        self.plist.move_cursor(row=row)
+        
+        if self.vs.display :
+            self.action_expand(toggle=False)
+        
+
+    def action_full_update(self):
         #li = LoadingIndicator(id="update")
         #await self.mount(li)
         
@@ -316,11 +347,13 @@ class MyApp(App):
         else:
             self.vs.display = False
         
+    
     def action_show_filters(self):  
         if not self.vs.display :
             self.fsb.display = not self.fsb.display
             if self.fsb.display :
                 self.sl_filters.focus()
+    
     
     def on_input_submitted(self):
         self.sel = self.projs.search_projects(self.search.value.split(" "))
@@ -358,6 +391,7 @@ class MyApp(App):
         self.sel = self.projs.search_projects(self.search.value.split(" "))
         self.print_projects_list()
         
+
 if __name__ == "__main__":
     app = MyApp()
     app.run()
