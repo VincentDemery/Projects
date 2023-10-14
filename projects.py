@@ -323,23 +323,16 @@ class MyApp(App):
 
         
     def clear_search(self):
-        search = self.search
-        search.action_end()
-        search.action_delete_left_all()
+        self.search.action_end()
+        self.search.action_delete_left_all()
 
             
     def action_escape(self):
-        if not self.vs.display :
+        if self.vs.display :
+             self.vs.display = False
+        elif len(self.search.value) > 0 :
             self.clear_search()
-            if not self.sel == [] :
-                c = self.sel[self.plist.cursor_row]
-                self.sel = []
-                self.print_projects_list()
-                self.plist.move_cursor(row=c)
-                self.plist.focus()
-        else:
-            self.vs.display = False
-        
+            self.print_projects_list()        
     
     def action_show_filters(self):  
         if not self.vs.display :
