@@ -236,8 +236,12 @@ class MyApp(App):
     def get_selected_project(self):
         if self.vs.display :
             c = self.expanded
-        else :
+        elif len(self.sel)>0 :
             c = self.sel[self.plist.cursor_row]
+        else :
+            #to avoid error, not the expected behavior
+            c = 0
+            
             
         p = self.projs.projs_pd.iloc[c]
         return c, p
