@@ -111,11 +111,14 @@ class Projects :
             
 
     def search_projects(self, search_string) :
-        search = search_string.split(" ")
-        search_regex = ''.join(['(?=.*' + s + ')' for s in search])
-        s = self.projs_pd['md'].str.contains(search_regex, regex=True, case=False)
-        found = np.flatnonzero(s)
-        return found
+        if search_string == "" :
+            return range(self.projs_pd.shape[0])
+        else :
+            search = search_string.split(" ")
+            search_regex = ''.join(['(?=.*' + s + ')' for s in search])
+            s = self.projs_pd['md'].str.contains(search_regex, regex=True, case=False)
+            found = np.flatnonzero(s)
+            return found
         
 
 
@@ -159,33 +162,11 @@ class MyApp(App):
         yield Footer()
         
         
-        
-    def filter_sel(self):
-        sel = self.sel
-        if len(sel) == 0:
-            sel = range(self.projs.projs_pd.shape[0])
-        
-        new_sel = []
-        for c in sel :
-            p = self.projs.projs_pd.iloc[c]
-            pstate = p['state'].casefold()
-            if pstate == 'active' :
-                if 'active' in self.sl_filters.selected :
-                    new_sel.append(c)
-            elif pstate == 'published':
-                if 'published' in self.sl_filters.selected :
-                    new_sel.append(c)
-            else :
-                if 'other' in self.sl_filters.selected :
-                    new_sel.append(c)
-            
-        self.sel = new_sel
-        
-    def print_projects_list(self, keep_cursor=False):
-        self.filter_sel()
+    def print_projects_list(self, keep_cursor=True):
+        self.update_selection()
         sel = self.sel
         
-        row = self.plist.cursor_row
+        cursor_count = self.plist.cursor_row
         
         self.plist.clear()
         
@@ -196,8 +177,8 @@ class MyApp(App):
                 td = "*"
             self.plist.add_row(td, p['name'], height=1)
             
-        if keep_cursor : 
-            self.plist.move_cursor(row=row)
+#        if keep_cursor : 
+#            self.plist.move_cursor(row=row)
             
     
     def on_mount(self) -> None:
@@ -264,7 +245,26 @@ class MyApp(App):
             
         p = self.projs.projs_pd.iloc[c]
         return p
-
+        
+    
+    def update_selection(self):
+        self.sel = self.projs.search_projects(self.search.value)
+        
+        new_sel = []
+        for c in self.sel :
+            p = self.projs.projs_pd.iloc[c]
+            pstate = p['state'].casefold()
+            if pstate == 'active' :
+                if 'active' in self.sl_filters.selected :
+                    new_sel.append(c)
+            elif pstate == 'published':
+                if 'published' in self.sl_filters.selected :
+                    new_sel.append(c)
+            else :
+                if 'other' in self.sl_filters.selected :
+                    new_sel.append(c)
+            
+        self.sel = new_sel
 
     def action_open(self):
         p = self.get_selected_project()
@@ -354,7 +354,6 @@ class MyApp(App):
     
     
     def on_input_submitted(self):
-        self.sel = self.projs.search_projects(self.search.value)
         self.print_projects_list()
         self.plist.focus()
         
@@ -378,7 +377,6 @@ class MyApp(App):
                                
                                
     def on_checkbox_changed(self, message: Checkbox.Changed):
-        self.sel = self.projs.search_projects(self.search.value)
         self.print_projects_list()
         
 #    def on_selectionlist_selectedchanged(self, message: SelectionList.SelectedChanged):
@@ -386,7 +384,6 @@ class MyApp(App):
     
     @on(SelectionList.SelectedChanged)
     def update_selected_view(self) -> None:
-        self.sel = self.projs.search_projects(self.search.value)
         self.print_projects_list()
         
 
