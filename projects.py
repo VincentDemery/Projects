@@ -69,8 +69,6 @@ class Projects :
             if s[1].casefold() == 'to do' :
                 proj['todo'] = '\n'.join(s[2])
         
-        proj['search'] = " ".join([proj['name'], proj.get('keywords', "")]).strip()
-            
         return proj
 
 
@@ -112,10 +110,10 @@ class Projects :
             self.read_projects()
             
 
-    def search_projects(self, search) :
-        #search_regex = ''.join(['(?=.*' + s + ')' for s in sargs.search])
+    def search_projects(self, search_string) :
+        search = search_string.split(" ")
         search_regex = ''.join(['(?=.*' + s + ')' for s in search])
-        s = self.projs_pd['search'].str.contains(search_regex, regex=True, case=False)
+        s = self.projs_pd['md'].str.contains(search_regex, regex=True, case=False)
         found = np.flatnonzero(s)
         return found
         
@@ -150,7 +148,7 @@ class MyApp(App):
             with self.fsb :
                 self.sl_filters = SelectionList[str](
                     ("Active", "active", True),
-                    ("Published", "published", True),
+                    ("Published", "published"),
                     ("Other", "other"))
                 yield self.sl_filters
                 
@@ -356,9 +354,9 @@ class MyApp(App):
     
     
     def on_input_submitted(self):
-        self.sel = self.projs.search_projects(self.search.value.split(" "))
+        self.sel = self.projs.search_projects(self.search.value)
         self.print_projects_list()
-        self.plist.focus() #Does not seem to produce anything
+        self.plist.focus()
         
     
     def on_markdown_link_clicked(self, message: Markdown.LinkClicked):
@@ -380,7 +378,7 @@ class MyApp(App):
                                
                                
     def on_checkbox_changed(self, message: Checkbox.Changed):
-        self.sel = self.projs.search_projects(self.search.value.split(" "))
+        self.sel = self.projs.search_projects(self.search.value)
         self.print_projects_list()
         
 #    def on_selectionlist_selectedchanged(self, message: SelectionList.SelectedChanged):
@@ -388,7 +386,7 @@ class MyApp(App):
     
     @on(SelectionList.SelectedChanged)
     def update_selected_view(self) -> None:
-        self.sel = self.projs.search_projects(self.search.value.split(" "))
+        self.sel = self.projs.search_projects(self.search.value)
         self.print_projects_list()
         
 
