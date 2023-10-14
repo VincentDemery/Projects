@@ -218,16 +218,11 @@ class MyApp(App):
             vs.display = False
         else :
             if count==-1 :
-                table = self.plist
-                
-                if self.sel == [] :
-                    self.expanded = table.cursor_row
-                else :
-                    self.expanded = self.sel[table.cursor_row]
+                count, p = self.get_selected_project()
             else :
                 self.expanded = count
+                p = self.projs.projs_pd.iloc[self.expanded]
 
-            p = self.projs.projs_pd.iloc[self.expanded]
             expand.update(p['md'])
             
             vs.display = True
@@ -238,13 +233,10 @@ class MyApp(App):
         if self.vs.display :
             c = self.expanded
         else :
-            if self.sel == [] :
-                c = table.cursor_row
-            else :
-                c = self.sel[table.cursor_row]
+            c = self.sel[table.cursor_row]
             
         p = self.projs.projs_pd.iloc[c]
-        return p
+        return c, p
         
     
     def update_selection(self):
@@ -267,14 +259,14 @@ class MyApp(App):
         self.sel = new_sel
 
     def action_open(self):
-        p = self.get_selected_project()
+        c, p = self.get_selected_project()
         
         subprocess.run(['xdg-open', os.path.join(self.projs.path, p['path'])],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
     def action_edit_project_file(self):
-        p = self.get_selected_project()
+        c, p = self.get_selected_project()
         subprocess.run(['xdg-open', os.path.join(self.projs.path, p['path'], 'project.md')],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
@@ -296,8 +288,7 @@ class MyApp(App):
     def action_update_selected(self):
         # MAYBE MOVE TO THE PROJECT CLASS
         
-        psel = self.get_selected_project()
-        c = psel['count']
+        c, psel = self.get_selected_project()
         
         p = self.projs.read_proj_file(os.path.join(self.projs.path, psel['path']))
         
