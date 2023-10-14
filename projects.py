@@ -84,8 +84,8 @@ class Projects :
         
         count = 0
         for p in projs:
-            count += 1
             p['count'] = count
+            count += 1
                     
         pdf = pd.DataFrame(projs)
         
@@ -163,22 +163,26 @@ class MyApp(App):
         
         
     def print_projects_list(self, keep_cursor=True):
+        if keep_cursor :
+            cursor_count, p = self.get_selected_project()
+        
         self.update_selection()
-        sel = self.sel
-        
-        cursor_count = self.plist.cursor_row
-        
+                
         self.plist.clear()
         
-        for c in sel :
+        for c in self.sel :
             p = self.projs.projs_pd.iloc[c]
             td = ""
             if len(p['todo'])>0:
                 td = "*"
             self.plist.add_row(td, p['name'], height=1)
-            
-#        if keep_cursor : 
-#            self.plist.move_cursor(row=row)
+        
+        #self.plist.move_cursor(row=2)
+        if keep_cursor and cursor_count in self.sel :
+            row = self.sel.index(cursor_count)
+            self.plist.move_cursor(row=row)
+        else :
+            self.plist.move_cursor(row=len(self.sel)-1)
             
     
     def on_mount(self) -> None:
@@ -193,18 +197,19 @@ class MyApp(App):
         self.projs.load_projects()
         self.sel = []
         
+        self.vs.display = False
+        self.fsb.display = False
+        self.fsb.border_title = 'Filters'
+        
         table = self.plist
         table.cursor_type = "row"
         table.zebra_stripes = True
         table.add_columns("T", "Name")
         table.show_header = False
-        self.print_projects_list()
+        self.print_projects_list(keep_cursor=False)
         table.focus()
         
-        self.vs.display = False
-        self.fsb.display = False
-        self.fsb.border_title = 'Filters'
-
+        
 
     def action_search(self):
         self.search.focus()
@@ -229,11 +234,10 @@ class MyApp(App):
 
     
     def get_selected_project(self):
-        table = self.plist
         if self.vs.display :
             c = self.expanded
         else :
-            c = self.sel[table.cursor_row]
+            c = self.sel[self.plist.cursor_row]
             
         p = self.projs.projs_pd.iloc[c]
         return c, p
@@ -293,9 +297,9 @@ class MyApp(App):
         p = self.projs.read_proj_file(os.path.join(self.projs.path, psel['path']))
         
         for field, values in self.projs.projs_pd.iteritems():
-            self.projs.projs_pd.at[c-1, field] = p.get(field, "")
+            self.projs.projs_pd.at[c, field] = p.get(field, "")
 
-        self.projs.projs_pd.at[c-1, 'count'] = c
+        self.projs.projs_pd.at[c, 'count'] = c
         
         self.projs.write_projects()
         
@@ -353,7 +357,7 @@ class MyApp(App):
         m = unquote(message.href)
         if m.isdigit() :
             c = int(m)
-            self.action_expand(toggle=False, count=c-1)
+            self.action_expand(toggle=False, count=c)
         else :
             p = self.projs.projs_pd.iloc[self.expanded]
             doc_path = os.path.join(self.projs.path, p['path'], m)
