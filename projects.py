@@ -116,7 +116,8 @@ class Projects :
         else :
             search = search_string.split(" ")
             search_regex = ''.join(['(?=.*' + s + ')' for s in search])
-            s = self.projs_pd['md'].str.contains(search_regex, regex=True, case=False)
+            s = self.projs_pd['md'].str.contains(search_regex, regex=True, case=False, 
+                                                 flags=re.DOTALL)
             found = np.flatnonzero(s)
             return found
         
@@ -223,7 +224,7 @@ class MyApp(App):
             vs.display = False
         else :
             if count==-1 :
-                count, p = self.get_selected_project()
+                self.expanded, p = self.get_selected_project()
             else :
                 self.expanded = count
                 p = self.projs.projs_pd.iloc[self.expanded]
