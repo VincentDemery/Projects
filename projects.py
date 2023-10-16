@@ -130,11 +130,11 @@ class MyApp(App):
     
     BINDINGS = [
         Binding(key="q", action="quit", description="Quit"),
-        Binding(key="s", action="search", description="Search"),
-        Binding(key="e", action="expand", description="Expand"),
+        Binding(key="s", action="search", description="Search", show=False),
+        Binding(key="space", action="expand", description="Expand"),
         Binding(key="o", action="open", description="Open"),
         Binding(key="t", action="show_todos", description="Todo list"),
-        Binding(key="u", action="update_selected", description="Update selected"),
+        Binding(key="u", action="update_selected", description="Update"),
         Binding(key="ctrl+u", action="full_update", description="Full update"),
         Binding(key="escape", action="escape", description="Return", show=False),
         Binding(key="ctrl+e", action="edit_project_file", description="Edit"),
@@ -193,10 +193,8 @@ class MyApp(App):
         if not self.config.getboolean('DEFAULT', 'dark') :
             self.action_toggle_dark()
         
-        
         self.projs = Projects(self.config['DEFAULT']['path'])
         self.projs.load_projects()
-        self.sel = []
         
         self.vs.display = False
         self.fsb.display = False
@@ -209,7 +207,6 @@ class MyApp(App):
         table.show_header = False
         self.print_projects_list(keep_cursor=False)
         table.focus()
-        
         
 
     def action_search(self):
