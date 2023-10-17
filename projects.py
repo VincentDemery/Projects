@@ -134,10 +134,10 @@ class MyApp(App):
         Binding(key="space", action="expand", description="Expand"),
         Binding(key="o", action="open", description="Open"),
         Binding(key="t", action="show_todos", description="Todo list"),
+        Binding(key="e", action="edit_project_file", description="Edit"),
         Binding(key="u", action="update_selected", description="Update"),
         Binding(key="ctrl+u", action="full_update", description="Full update"),
         Binding(key="escape", action="escape", description="Return", show=False),
-        Binding(key="ctrl+e", action="edit_project_file", description="Edit"),
         Binding(key="ctrl+f", action="show_filters", description="Filters"),
     ]
 
