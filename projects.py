@@ -314,14 +314,10 @@ class MyApp(App):
         
 
     def action_full_update(self):
-        #li = LoadingIndicator(id="update")
-        #await self.mount(li)
-        
         self.projs.read_projects()
         self.print_projects_list()
-        
-        #time.sleep(5)
-        #li.remove()
+        self.notify("{} projects found".format(self.projs.projs_pd.shape[0]),
+                    title="Full update successful")
 
         
     def clear_search(self):
