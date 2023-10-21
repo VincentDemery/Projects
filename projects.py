@@ -327,10 +327,12 @@ class MyApp(App):
             
     def action_escape(self):
         if self.vs.display :
-             self.vs.display = False
+            self.vs.display = False
         elif len(self.search.value) > 0 :
             self.clear_search()
-            self.print_projects_list()        
+            self.print_projects_list()
+        
+        self.plist.focus()
     
     def action_show_filters(self):  
         if not self.vs.display :
