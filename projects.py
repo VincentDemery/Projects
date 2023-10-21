@@ -353,9 +353,12 @@ class MyApp(App):
             self.action_expand(toggle=False, count=c)
         else :
             p = self.projs.projs_pd.iloc[self.expanded]
-            doc_path = os.path.join(self.projs.path, p['path'], m)
-            if os.path.isfile(doc_path) :
-                to_open = doc_path
+            doc_path1 = os.path.join(self.projs.path, p['path'], m)
+            doc_path2 = os.path.join(os.path.expanduser(m))
+            if os.path.isfile(doc_path1) :
+                to_open = doc_path1
+            elif os.path.isfile(doc_path2) :
+                to_open = doc_path2
             else :
                 to_open = m
 
