@@ -82,11 +82,6 @@ class Projects :
                     
         projs = sorted(projs, key=lambda p: p['last_mod'])
         
-        count = 0
-        for p in projs:
-            p['count'] = count
-            count += 1
-                    
         pdf = pd.DataFrame(projs)
         
         pdf.fillna('', inplace=True)
@@ -286,10 +281,8 @@ class MyApp(App):
         for field, values in self.projs.projs_pd.iteritems():
             self.projs.projs_pd.at[c, field] = p.get(field, "")
 
-        self.projs.projs_pd.at[c, 'count'] = c
-        
         self.projs.write_projects()
-        
+         
         row = self.plist.cursor_row
         self.print_projects_list(keep_cursor=True)
         self.plist.move_cursor(row=row)
