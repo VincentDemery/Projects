@@ -133,7 +133,6 @@ class MyApp(App):
         Binding(key="s", action="search", description="Search", show=False),
         Binding(key="space", action="expand", description="Expand"),
         Binding(key="o", action="open", description="Open"),
-        Binding(key="t", action="show_todos", description="Todo list"),
         Binding(key="e", action="edit_project_file", description="Edit"),
         Binding(key="u", action="update_selected", description="Update"),
         Binding(key="ctrl+u", action="full_update", description="Full update"),
@@ -277,20 +276,6 @@ class MyApp(App):
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
 
-    def action_show_todos (self):
-        MARKDOWN = "# To do list"
-        hastodo = np.flatnonzero(self.projs.projs_pd['todo'].str.len().gt(0))
-        
-        for c in hastodo :
-            p = self.projs.projs_pd.iloc[c]
-            MARKDOWN += '\n\n## [{}]({})\n\n{}'.format(p['name'], p['count'], p['todo'])
-        
-        expand = self.query_one(Markdown)
-        expand.update(MARKDOWN)
-            
-        self.vs.display = True
-    
-    
     def action_update_selected(self):
         # MAYBE MOVE TO THE PROJECT CLASS
         
