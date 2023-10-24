@@ -282,9 +282,7 @@ class MyApp(App):
 
         self.projs.write_projects()
          
-        row = self.plist.cursor_row
         self.print_projects_list(keep_cursor=True)
-        self.plist.move_cursor(row=row)
         
         if self.vs.display :
             self.action_expand(toggle=False)
