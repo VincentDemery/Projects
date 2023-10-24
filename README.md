@@ -15,6 +15,5 @@ Once started, this script walks through the specified directory to find the proj
 
 ## To do
 
-- Use Pandas to sort the projects, if necessary
 - Projects list should also be sorted when a single project is updated
 - Bindings should be widget dependent

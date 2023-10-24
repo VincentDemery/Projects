@@ -80,11 +80,10 @@ class Projects :
                 p = self.read_proj_file(d[0])
                 projs.append(p)
                     
-        projs = sorted(projs, key=lambda p: p['last_mod'])
-        
         pdf = pd.DataFrame(projs)
-        
         pdf.fillna('', inplace=True)
+        pdf.sort_values('last_mod', inplace=True)
+        pdf.reset_index(drop=True, inplace=True)
         
         self.projs_pd = pdf
         
