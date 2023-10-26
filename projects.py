@@ -82,14 +82,18 @@ class Projects :
                     
         pdf = pd.DataFrame(projs)
         pdf.fillna('', inplace=True)
-        pdf.sort_values('last_mod', inplace=True)
-        pdf.reset_index(drop=True, inplace=True)
         
         self.projs_pd = pdf
         
+        self.sort_projects()
         self.write_projects()
 
         return projs
+        
+    
+    def sort_projects (self):
+        self.projs_pd.sort_values('last_mod', inplace=True)
+        self.projs_pd.reset_index(drop=True, inplace=True)
     
     
     def update_single_project (self, c):
