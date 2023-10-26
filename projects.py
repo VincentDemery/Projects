@@ -103,7 +103,11 @@ class Projects :
         for field, values in self.projs_pd.iteritems():
             self.projs_pd.at[c, field] = p.get(field, "")
 
+        self.sort_projects()
         self.write_projects()
+        
+        c = np.flatnonzero(self.projs_pd['path'] == path)[0]
+        return c
         
         
     def write_projects (self):
@@ -170,7 +174,7 @@ class MyApp(App):
         yield Footer()
         
         
-    def print_projects_list(self, keep_cursor=True):
+    def print_projects_list(self, keep_cursor=True, cursor=-1):
         if keep_cursor :
             cursor_count, p = self.get_selected_project()
         
@@ -185,12 +189,14 @@ class MyApp(App):
                 td = "*"
             self.plist.add_row(td, p['name'], height=1)
         
-        #self.plist.move_cursor(row=2)
         if keep_cursor and cursor_count in self.sel :
             row = self.sel.index(cursor_count)
-            self.plist.move_cursor(row=row)
+        elif cursor in self.sel :
+            row = self.sel.index(cursor)
         else :
-            self.plist.move_cursor(row=len(self.sel)-1)
+            row=len(self.sel)-1
+            
+        self.plist.move_cursor(row=row)
             
     
     def on_mount(self) -> None:
@@ -287,12 +293,12 @@ class MyApp(App):
     def action_update_selected(self):
         c, psel = self.get_selected_project()
         
-        self.projs.update_single_project(c)
+        c = self.projs.update_single_project(c)
          
-        self.print_projects_list(keep_cursor=True)
+        self.print_projects_list(keep_cursor=False, cursor=c)
         
         if self.vs.display :
-            self.action_expand(toggle=False)
+            self.action_expand(toggle=False, count=c)
         
 
     def action_full_update(self):
