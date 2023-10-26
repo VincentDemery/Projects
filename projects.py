@@ -90,6 +90,16 @@ class Projects :
         self.write_projects()
 
         return projs
+    
+    
+    def update_single_project (self, c):
+        path = self.projs_pd.at[c, 'path']
+        p = self.read_proj_file(os.path.join(self.path, path))
+        
+        for field, values in self.projs_pd.iteritems():
+            self.projs_pd.at[c, field] = p.get(field, "")
+
+        self.write_projects()
         
         
     def write_projects (self):
@@ -271,16 +281,9 @@ class MyApp(App):
     
 
     def action_update_selected(self):
-        # MAYBE MOVE TO THE PROJECT CLASS
-        
         c, psel = self.get_selected_project()
         
-        p = self.projs.read_proj_file(os.path.join(self.projs.path, psel['path']))
-        
-        for field, values in self.projs.projs_pd.iteritems():
-            self.projs.projs_pd.at[c, field] = p.get(field, "")
-
-        self.projs.write_projects()
+        self.projs.update_single_project(c)
          
         self.print_projects_list(keep_cursor=True)
         
