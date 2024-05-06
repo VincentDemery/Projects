@@ -58,7 +58,7 @@ class Projects :
                 else :
                     tree[-1][2].append(line.strip())
 
-                    m = re.search("^\*\*.*:\*\*",line)
+                    m = re.search(r"^\*\*.*:\*\*",line)
                     if m :
                         kw = m.group()[2:-3].casefold()
                         proj[kw] = line[5+len(kw):].strip()
