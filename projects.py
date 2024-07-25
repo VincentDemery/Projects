@@ -100,7 +100,7 @@ class Projects :
         path = self.projs_pd.at[c, 'path']
         p = self.read_proj_file(os.path.join(self.path, path))
         
-        for field, values in self.projs_pd.iteritems():
+        for field, values in self.projs_pd.items():
             self.projs_pd.at[c, field] = p.get(field, "")
 
         self.sort_projects()
