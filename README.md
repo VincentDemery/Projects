@@ -13,6 +13,11 @@ Once started, this script walks through the specified directory to find the proj
 - Open the project directory.
 - Update project database, in case projects are added or modified during the execution, or update a single project.
 
+## Usage
+
+- Edit the path argument in the configuration file `projects.conf` to define where the projects will be looked for.
+- Run `projects.py`.
+
 ## To do
 
 - Bindings should be widget dependent
