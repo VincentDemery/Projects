@@ -169,7 +169,7 @@ class MyApp(App):
                 
             self.vs = VerticalScroll(id="vs")
             with self.vs :
-                yield Markdown(id="expand")
+                yield Markdown(id="expand", open_links=False)
 
         yield Footer()
         
