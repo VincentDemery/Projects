@@ -47,7 +47,7 @@ Screen {
     layer:below2;
     dock:right;
     height: auto;
-    width: 20;
+    width: 23;
     border: round  $primary-darken-1;
     border-title-style: bold;
 }
