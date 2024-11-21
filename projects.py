@@ -27,7 +27,7 @@ from urllib.parse import unquote
 from itertools import cycle
 
 from textual import on
-from textual.app import App, ComposeResult
+from textual.app import App, ComposeResult, InvalidThemeError
 from textual.widgets import Input, Static, Button, DataTable, Footer, Markdown, LoadingIndicator, Checkbox, SelectionList, Pretty
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
@@ -208,7 +208,11 @@ class MyApp(App):
         self.config = configparser.ConfigParser()
         self.config.read(os.path.join(os.path.dirname(__file__), 'projects.conf'))
         
-        self.theme = self.config['DEFAULT']['theme']
+        try :
+            self.theme = self.config['DEFAULT']['theme']
+        except InvalidThemeError :
+            self.notify("'{}' is not a valid theme".format(self.config['DEFAULT']['theme']),
+                        title="InvalidThemeError", severity="warning")
         
         self.get_options(self.config['DEFAULT']['state_filters'])
         self.sl_filters.add_options(self.filter_options)
