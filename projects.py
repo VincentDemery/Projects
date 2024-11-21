@@ -208,8 +208,7 @@ class MyApp(App):
         self.config = configparser.ConfigParser()
         self.config.read(os.path.join(os.path.dirname(__file__), 'projects.conf'))
         
-        if not self.config.getboolean('DEFAULT', 'dark') :
-            self.action_toggle_dark()
+        self.theme = self.config['DEFAULT']['theme']
         
         self.get_options(self.config['DEFAULT']['state_filters'])
         self.sl_filters.add_options(self.filter_options)
