@@ -161,10 +161,7 @@ class MyApp(App):
             yield self.search
             self.fsb = Vertical(id="fsb")
             with self.fsb :
-                self.sl_filters = SelectionList[str](
-                    ("Active", "active", True),
-                    ("Published", "published"),
-                    ("Other", "other"))
+                self.sl_filters = SelectionList[str]()
                 yield self.sl_filters
                 
             self.vs = VerticalScroll(id="vs")
@@ -197,7 +194,15 @@ class MyApp(App):
             row=len(self.sel)-1
             
         self.plist.move_cursor(row=row)
-            
+    
+    def get_options(self, filters_str):
+        options = []
+        filters_str += ',Other'
+        for o in filters_str.split(',') :
+            o = o.strip()
+            options.append((o, o.casefold(), len(options)==0))
+        
+        return options
     
     def on_mount(self) -> None:
         self.config = configparser.ConfigParser()
@@ -205,6 +210,9 @@ class MyApp(App):
         
         if not self.config.getboolean('DEFAULT', 'dark') :
             self.action_toggle_dark()
+        
+        
+        self.sl_filters.add_options(self.get_options(self.config['DEFAULT']['state_filters']))
         
         self.projs = Projects(self.config['DEFAULT']['path'])
         self.projs.load_projects()
