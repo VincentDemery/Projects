@@ -201,8 +201,8 @@ class MyApp(App):
         for o in filters_str.split(',') :
             o = o.strip()
             options.append((o, o.casefold(), len(options)==0))
-        
-        return options
+
+        self.filter_options = options
     
     def on_mount(self) -> None:
         self.config = configparser.ConfigParser()
@@ -211,8 +211,8 @@ class MyApp(App):
         if not self.config.getboolean('DEFAULT', 'dark') :
             self.action_toggle_dark()
         
-        
-        self.sl_filters.add_options(self.get_options(self.config['DEFAULT']['state_filters']))
+        self.get_options(self.config['DEFAULT']['state_filters'])
+        self.sl_filters.add_options(self.filter_options)
         
         self.projs = Projects(self.config['DEFAULT']['path'])
         self.projs.load_projects()
@@ -273,15 +273,18 @@ class MyApp(App):
         for c in self.sel :
             p = self.projs.projs_pd.iloc[c]
             pstate = p['state'].casefold()
-            if pstate == 'active' :
-                if 'active' in self.sl_filters.selected :
-                    new_sel.append(c)
-            elif pstate == 'published':
-                if 'published' in self.sl_filters.selected :
-                    new_sel.append(c)
-            else :
-                if 'other' in self.sl_filters.selected :
-                    new_sel.append(c)
+            selected = False
+            selectable = True
+            for o in self.filter_options[:-1] :
+                if selectable and (pstate == o[1]) :
+                    selectable = False
+                    if o[1] in self.sl_filters.selected :
+                        selected = True
+            if selectable and 'other' in self.sl_filters.selected :
+                selected = True
+            
+            if selected :
+                new_sel.append(c)
             
         self.sel = new_sel
 
