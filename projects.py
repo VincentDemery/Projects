@@ -28,7 +28,7 @@ from itertools import cycle
 
 from textual import on
 from textual.app import App, ComposeResult, InvalidThemeError
-from textual.widgets import Input, Static, Button, DataTable, Footer, Markdown, LoadingIndicator, Checkbox, SelectionList, Pretty
+from textual.widgets import Input, DataTable, Footer, Markdown, SelectionList
 from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 
@@ -369,9 +369,6 @@ class MyApp(App):
                            stderr=subprocess.DEVNULL)
                                
                                
-    def on_checkbox_changed(self, message: Checkbox.Changed):
-        self.print_projects_list()
-    
     @on(SelectionList.SelectedChanged)
     def update_selected_view(self) -> None:
         self.print_projects_list()
