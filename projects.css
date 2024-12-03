@@ -5,9 +5,31 @@ Screen {
 
 #list {
     layer: below;
+    layers: listbelow listabove;
+}
+
+#table {
+    layer: listbelow;
     width: 100%;
     height: 100%;
 }
+
+#search {
+    layer:listbelow;
+    dock: bottom;
+    width: 100%;
+    height: 3;
+}
+
+#fsb {
+    layer:listabove;
+    dock:right;
+    height: auto;
+    width: 23;
+    border: round  $primary-darken-1;
+    border-title-style: bold;
+}
+
 
 #vs {
     layer: above;
@@ -21,18 +43,3 @@ Screen {
     height: auto;
 }
 
-#search {
-    layer:below;
-    dock: bottom;
-    width: 100%;
-    height: 3;
-}
-
-#fsb {
-    layer:below2;
-    dock:right;
-    height: auto;
-    width: 23;
-    border: round  $primary-darken-1;
-    border-title-style: bold;
-}

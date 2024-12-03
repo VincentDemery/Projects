@@ -155,14 +155,16 @@ class MyApp(App):
     def compose(self) -> ComposeResult:
         self.main_window = Vertical(id="main_window")
         with self.main_window :
-            self.plist = DataTable(id="list")
-            yield self.plist
-            self.search = Input(placeholder="Search", id="search")
-            yield self.search
-            self.fsb = Vertical(id="fsb")
-            with self.fsb :
-                self.sl_filters = SelectionList[str]()
-                yield self.sl_filters
+            self.list = Vertical(id="list")
+            with self.list :
+                self.plist = DataTable(id="table")
+                yield self.plist
+                self.search = Input(placeholder="Search", id="search")
+                yield self.search
+                self.fsb = Vertical(id="fsb")
+                with self.fsb :
+                    self.sl_filters = SelectionList[str]()
+                    yield self.sl_filters
                 
             self.vs = VerticalScroll(id="vs")
             with self.vs :
@@ -368,7 +370,7 @@ class MyApp(App):
                            stdout=subprocess.DEVNULL, 
                            stderr=subprocess.DEVNULL)
                                
-                               
+
     @on(SelectionList.SelectedChanged)
     def update_selected_view(self) -> None:
         self.print_projects_list()
