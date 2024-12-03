@@ -371,9 +371,6 @@ class MyApp(App):
                                
     def on_checkbox_changed(self, message: Checkbox.Changed):
         self.print_projects_list()
-        
-#    def on_selectionlist_selectedchanged(self, message: SelectionList.SelectedChanged):
-#        self.pretty.update(self.sl_filters.selected)
     
     @on(SelectionList.SelectedChanged)
     def update_selected_view(self) -> None:

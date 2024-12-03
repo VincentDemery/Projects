@@ -28,21 +28,6 @@ Screen {
     height: 3;
 }
 
-#test {
-    dock: bottom;
-    width: 100%;
-    height: 4;
-    color: #0f2b41;
-    background: dodgerblue;
-}
-
-#update {
-    layer: above2;
-    align: center middle;
-    width: 50%;
-    height: 50%;
-}
-
 #fsb {
     layer:below2;
     dock:right;
