@@ -1,5 +1,5 @@
 Screen {
-    layers: below below2 above above2;
+    layers: below above;
     align: center middle;
 }
 
