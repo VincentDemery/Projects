@@ -168,7 +168,8 @@ class MyApp(App):
                 
             self.vs = VerticalScroll(id="vs")
             with self.vs :
-                yield Markdown(id="expand", open_links=False)
+                self.expand = Markdown(id="expand", open_links=False)
+                yield self.expand
 
         yield Footer()
         
@@ -241,7 +242,6 @@ class MyApp(App):
 
     def action_expand(self, toggle=True, count=-1):
         vs = self.vs
-        expand = self.query_one(Markdown)
         
         if vs.display and toggle :
             vs.display = False
@@ -252,7 +252,7 @@ class MyApp(App):
                 self.expanded = count
                 p = self.projs.projs_pd.iloc[self.expanded]
 
-            expand.update(p['md'])
+            self.expand.update(p['md'])
             
             vs.display = True
 
